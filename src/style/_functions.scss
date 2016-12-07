@@ -1,0 +1,12 @@
+@import "variables";
+
+@function parse-int($number) {
+    @return $number / ($number * 0 + 1);
+}
+
+@function px-rem($px) {
+    @if unit($px) != px {
+        @return $px
+    }
+    @return parse-int($px)/parse-int($rootFontSize) * 1rem;
+}

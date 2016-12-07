@@ -1,0 +1,35 @@
+{
+  "globals": {
+    "require" : true,
+    "module" : true,
+    "fetch" : true,
+    "console" : true,
+    "process" : true
+  },
+  
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "module",
+    "ecmaFeatures": {                  
+      "spread": true,
+      "experimentalObjectRestSpread" : true                               
+    }
+  },
+
+  "env" : {
+    "es6" : true,
+    "browser": true
+  },
+
+  "plugins": [
+    "vue"
+  ],
+
+  "rules" : {
+    "no-mixed-spaces-and-tabs" : 0,
+    "no-console" : 0,
+    "no-unused-vars" : 0
+  },
+
+  "extends": ["eslint:recommended"]
+}

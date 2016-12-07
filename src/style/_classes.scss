@@ -1,0 +1,89 @@
+@import './functions';
+@import './variables';
+@import "./fa/variables";
+@import "./mixins";
+
+.page {
+    @include float-left;
+    padding-top:px-rem($headerHeight);
+
+    &--centered-content, &--loading {
+        @include centered-content;
+    }
+
+    &--loading {
+        &:before {
+			content:$fa-var-cog; 
+			font:30px 'FontAwesome'; 
+			color:$primaryColor; 
+			width: 100%; 
+			text-align: center; 
+			animation: spin 2s infinite linear;
+            z-index:3;
+		}
+    }
+}
+
+.margin-top {@include margin-top;}
+.margin-bottom {@include margin-bottom;}
+.margin-left {@include margin-left;}
+.margin-right {@include margin-right;}
+.float-left {@include float-left;}
+
+.h1 { @include header-h1; }
+.h2 { @include header-h2; }
+.h-border { @include header-border; }
+
+.cropped-text { @include cropped-text; }
+
+.icon-btn {
+    vertical-align: middle;
+    width:1.5em;
+    height:1.5em;
+    line-height:1.5em;
+    border-radius:50%;
+    background:$whiteColor;
+    transition:transform .4s ease-out;
+    display:flex;
+    align-items: center;
+    align-content: center;
+
+    > .fa {width:100%;}
+
+    &:active {transform:scale(.9);}
+}
+
+.header {
+    height:px-rem($headerHeight);
+    z-index:index($zIndexes, header);
+    display:flex;
+    align-items:center;
+    position:fixed;
+    width:100%;
+    top:0;
+    color:$whiteColor;
+
+    &--page {left:px-rem(40px); right:0; width:auto; }
+    &__title { padding-right:px-rem(40px); display:flex; flex:2; flex-direction: column; align-items: center; }
+    &__btns {position:absolute; right:px-rem($horizontalMargin); top:0; height:100%; display:flex; align-items: center; font-size:1.5em; }
+}
+
+.button-reset {font-size:inherit; font-family:inherit; border:0; color:inherit; background:transparent; -webkit-appearance: none; padding:0;
+    &:focus {outline:none;}
+}
+
+.button { border-radius:5px; @extend .button-reset; padding:.7em 1em; 
+    //&--white {background:$whiteColor;}
+    //&--green {background:$primaryColor; color:$whiteColor;}
+    &.warning-color-bg {color:$whiteColor;}
+    &--fullwidth {width:100%;}
+    &--fullwidth-margin {width:calc(100% - #{px-rem($horizontalMargin*2)}); margin-left:px-rem($horizontalMargin); }
+
+    &[disabled] {opacity:.4;}
+}
+
+.primary-color {color:$primaryColor; transition:color .4s ease-out;}
+.primary-color-bg {background-color:$primaryColor; transition:background-color .4s ease-out;}
+
+.warning-color {color:$warningColor; transition:color .4s ease-out;}
+.warning-color-bg {background-color:$warningColor; transition:background-color .4s ease-out;}

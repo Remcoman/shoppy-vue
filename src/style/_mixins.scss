@@ -1,0 +1,51 @@
+@import './variables';
+@import './functions';
+
+@mixin centered-content {
+	display:flex; 
+	align-content: center; 
+	align-items: center; 
+	height:100vh;
+}
+
+@mixin cropped-text {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+@mixin float-left {
+	float:left;
+	width:100%;
+}
+
+@mixin header-h1 {
+	font-size:$xxlFontSize;
+	font-weight:normal;
+}
+
+@mixin header-h2 {
+	font-size:$xlFontSize;
+	font-weight:normal;
+}
+
+@mixin header-border {
+	border-bottom:1px solid #dfdfdf;
+	padding-bottom:px-rem(5px);
+}
+
+@mixin margin-top($scale:1) {
+	margin-top:$verticalMargin*$scale;
+}
+
+@mixin margin-left($scale:1) {
+	margin-left:$horizontalMargin*$scale;
+}
+
+@mixin margin-bottom($scale:1) {
+	margin-bottom:$verticalMargin*$scale;
+}
+
+@mixin margin-right($scale:1) {
+	margin-right:$horizontalMargin*$scale;
+}

@@ -1,0 +1,13 @@
+@import 'variables';
+@import 'fontface';
+@import 'fa/font-awesome';
+@import 'classes';
+
+*, *:before, *:after { box-sizing:border-box; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);  -moz-osx-font-smoothing:grayscale; -webkit-font-smoothing:antialiased; }
+html { font-size:$rootFontSize; height:100%; } 
+
+body {background: $whiteColor; color: #000; margin:0; font:$bodyFontSize $bodyFontFamily; height:100%; }
+
+h1 {@extend .h1; margin:0;}
+h2 {@extend .h2; margin:0;}
+button {@extend .button-reset;} 
