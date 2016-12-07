@@ -5,7 +5,7 @@ import {ProductModel} from '../../models';
 const ERROR_LOAD_FAILED = new Error("Er ging iets mis bij het laden van de producten");
 
 export const mutationTypes = {
-    SHOPPING_LIST_TOGGLE_FILTER  	  : "shopping-list/TOGGLE_FILTER",
+	SHOPPING_LIST_TOGGLE_FILTER  	  : "shopping-list/TOGGLE_FILTER",
 	SHOPPING_LIST_LOAD_START 		  : "shopping-list/LOAD_START",
 	SHOPPING_LIST_LOAD_SUCCESS 		  : "shopping-list/LOAD_SUCCESS",
 
@@ -19,7 +19,7 @@ export const mutationTypes = {
 };
 
 export const actionTypes = {
-    SHOPPING_LIST_LOAD 	 : "shopping-list/LOAD",
+	SHOPPING_LIST_LOAD 	 : "shopping-list/LOAD",
 	SHOPPING_LIST_UNLOAD : "shopping-list/UNLOAD",
 
 	PRODUCTS_ADD 		 : "shopping-list/ADD",
@@ -34,11 +34,11 @@ export const actionTypes = {
 const createState = () => {
 	return {
 		...productsStore.createState(),
-        
-        filterTodo : false,
+		
+		filterTodo : false,
 		loaded	   : false,
 		loading	   : false
-    }
+	}
 };
 
 const createActions = ({dbService}) => {
@@ -48,7 +48,7 @@ const createActions = ({dbService}) => {
 	let changesSubscription,
 		syncer;
 
-    return {
+	return {
 		...productsStore.createActions(
 			db, 
 			actionTypes, 
@@ -85,17 +85,17 @@ const createActions = ({dbService}) => {
 
 			let docs;
 
-            try {
-                docs = await dbView.load();
-            }
-            catch(e) {
-                if(e.status !== 404) {
-                    commit(appMutationTypes.SET_ERROR, ERROR_LOAD_FAILED);
-                    return;
-                }
-                
-                docs = [];
-            }
+			try {
+				docs = await dbView.load();
+			}
+			catch(e) {
+				if(e.status !== 404) {
+					commit(appMutationTypes.SET_ERROR, ERROR_LOAD_FAILED);
+					return;
+				}
+				
+				docs = [];
+			}
 
 			commit(mutationTypes.SHOPPING_LIST_LOAD_SUCCESS);
 			commit(mutationTypes.PRODUCTS_SET_ITEMS, {docs});
@@ -115,11 +115,11 @@ const createActions = ({dbService}) => {
 
 			syncer = db.sync();
 		}
-    }
+	}
 };
 
 const createMutations = () => {
-    return {
+	return {
 		...productsStore.createMutations(mutationTypes),
 
 		[mutationTypes.SHOPPING_LIST_LOAD_START] (state) {
@@ -128,7 +128,7 @@ const createMutations = () => {
 			state.items   = [];
 		},
 
-    	[mutationTypes.SHOPPING_LIST_LOAD_SUCCESS] (state) {
+		[mutationTypes.SHOPPING_LIST_LOAD_SUCCESS] (state) {
 			state.loading = false;
 			state.loaded  = true;
 		},
@@ -136,14 +136,14 @@ const createMutations = () => {
 		[mutationTypes.SHOPPING_LIST_TOGGLE_FILTER] (state) {
 			state.filterTodo = !state.filterTodo;
 		}
-    }
+	}
 }
 
 export default (ctx) => {
-    return {
-        state 	  : createState(ctx),
-        mutations : createMutations(ctx),
-        actions   : createActions(ctx),
+	return {
+		state 	  : createState(ctx),
+		mutations : createMutations(ctx),
+		actions   : createActions(ctx),
 
 		getters : {
 			filteredProducts(state) {
@@ -155,6 +155,6 @@ export default (ctx) => {
 				}
 			}
 		}
-    }
+	}
 }
 

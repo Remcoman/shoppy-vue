@@ -7,7 +7,7 @@ import config from 'config';
 import {FocusDirective} from './directives';
 
 if(process.env.NODE_ENV === "production") {
-    require('offline-plugin/runtime').install();
+	require('offline-plugin/runtime').install();
 }
 
 import './style/style.scss';
@@ -15,9 +15,9 @@ import './style/style.scss';
 //global mixin for database
 const dbService = new DbService(config);
 Vue.mixin({
-    beforeCreate () {
-        this.$dbService = dbService;
-    }
+	beforeCreate () {
+		this.$dbService = dbService;
+	}
 });
 
 //context for all store modules
@@ -27,12 +27,12 @@ const storeCtx = {dbService};
 FocusDirective();
 
 const router = createRouter(),
-      store = createStore(storeCtx);
+	  store = createStore(storeCtx);
 
 /* eslint-disable no-new */
 new Vue({
-    el: '.app',
-    render: h => h(App),
-    router : router,
-    store : store
+	el: '.app',
+	render: h => h(App),
+	router : router,
+	store : store
 });

@@ -8,19 +8,19 @@ import {createRecipeDetailsStore} from 'modules/recipe-details';
 import {createMutations, createState} from './app';
 
 export default function (ctx) {
-    Vue.use(Vuex);
+	Vue.use(Vuex);
 
-    return new Vuex.Store({
-        strict: process.env.NODE_ENV !== "production",
-        
-        state : createState(),
+	return new Vuex.Store({
+		strict: process.env.NODE_ENV !== "production",
+		
+		state : createState(),
 
-        modules : {
-            shoppingList : createShoppingListStore(ctx),
-            recipes : createRecipesStore(ctx),
-            recipeDetails : createRecipeDetailsStore(ctx)
-        },
+		modules : {
+			shoppingList : createShoppingListStore(ctx),
+			recipes : createRecipesStore(ctx),
+			recipeDetails : createRecipeDetailsStore(ctx)
+		},
 
-        mutations : createMutations()
-    });
+		mutations : createMutations()
+	});
 }

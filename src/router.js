@@ -7,13 +7,13 @@ import {RecipesComponent} from './modules/recipes'
 import {RecipeDetailsComponent} from './modules/recipe-details'
 
 const routes = [
-    {path : '/', component : ShoppingListComponent},
-    {path : '/recepten', component : RecipesComponent},
-    {path : '/recept/:slug', component : RecipeDetailsComponent}
+	{path : '/', component : ShoppingListComponent},
+	{path : '/recepten', component : RecipesComponent},
+	{path : '/recept/:slug', component : RecipeDetailsComponent}
 ]
 
 export default function createRouter() {
-    Vue.use(VueRouter);
+	Vue.use(VueRouter);
 
-    return new VueRouter({routes});
+	return new VueRouter({routes});
 }

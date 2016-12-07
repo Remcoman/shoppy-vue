@@ -42,9 +42,9 @@ export default class DbChangeObserver extends EventEmitter {
 
 			//required options
 			include_docs : true,
-            live         : true,
-            since        : 'now'
-        });
+			live         : true,
+			since        : 'now'
+		});
 
 		this._changes
 			.on('change', change => this.onChange(change))

@@ -1,8 +1,8 @@
 <template>
 	<div class="recipe-list" :class="{'recipe-list--empty' : recipes.length === 0}">
 		<div class="recipe-list__empty" v-show="empty">
-            <slot name="empty"></slot>
-        </div>
+			<slot name="empty"></slot>
+		</div>
 
 		<transition-group 
 			tag="div" 
@@ -41,10 +41,10 @@
 		},
 
 		computed : {
-            empty() {
-                return this.recipes.length === 0;
-            }
-        },
+			empty() {
+				return this.recipes.length === 0;
+			}
+		},
 
 		components : {
 			RecipeListItem
@@ -61,15 +61,15 @@
 		width:100%;
 
 		&--empty {
-            display:flex; 
-            align-content: center; 
-            align-items: center; 
-            height:100%;
-        }
+			display:flex; 
+			align-content: center; 
+			align-items: center; 
+			height:100%;
+		}
 
-        &__empty {
-            width:100%; 
-            text-align:center;
-        }
+		&__empty {
+			width:100%; 
+			text-align:center;
+		}
 	}
 </style>

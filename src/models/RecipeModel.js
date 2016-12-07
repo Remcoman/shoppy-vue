@@ -1,6 +1,6 @@
 
 export default class RecipeModel {
-    constructor(data) {
+	constructor(data) {
 
 		//reserved pouch db props
 		this._id = undefined;
@@ -11,11 +11,11 @@ export default class RecipeModel {
 		this.name = "";
 		this.preparation = "";
 		this.dateAdded = null;
-        this.image = {
-            high : null,
-            med : null,
-            low : null
-        }
+		this.image = {
+			high : null,
+			med : null,
+			low : null
+		}
 
 		if(data) {
 			Object.assign(this, data);

@@ -77,7 +77,7 @@ const createMutations = () => ({
 const createActions = (ctx) => {
 	const {dbService} = ctx;
 
-    const recipesDb = dbService.db("shoppy-recipes"),
+	const recipesDb = dbService.db("shoppy-recipes"),
 		  recipesBySlugView = recipesDb.view("recipes-by-slug"); //recipes indexed by slug
 
 	const productsDb = dbService.db("shoppy-products");
@@ -170,8 +170,8 @@ const createActions = (ctx) => {
 			}
 			catch(e) {
 				if(e.status !== 404) {
-                    throw ERROR_LOAD_PRODUCTS_FAILED;
-                }
+					throw ERROR_LOAD_PRODUCTS_FAILED;
+				}
 			}
 
 			return docs;
@@ -189,7 +189,7 @@ const createActions = (ctx) => {
 			catch(e) {
 				if(e.status !== 404) {
 					throw ERROR_LOAD_FAILED;
-                }
+				}
 			}
 
 			return recipeDetailsDoc;
