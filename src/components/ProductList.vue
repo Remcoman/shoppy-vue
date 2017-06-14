@@ -4,48 +4,52 @@
 			<slot name="empty"></slot>
 		</div>
 		
-		<transition-group 
-			name="product-list" 
-			tag="div"
-			enter-active-class="product--enter-active"
-			leave-active-class="product--leave-active" 
-			v-show="!empty"
+		<draggable-list 
+			:items="products" 
+			:transition="transition"
+			:classNames="{'target' : 'product--target', 'dragging' : 'product--dragging'}"
+			:enabled="draggable && products.length > 1"
+			@drop="handleDrop"
 			>
-			<product-list-item
-				v-for="product in products"
 
-				:key="product._id"
-				:product="product"
-				:editable="editing"
-				:focused="focusId === product._id"
-				:event-proxy="eventProxy"
-			></product-list-item>
-		</transition-group>
+			<!-- declare contents of draggable-list item slot -->
+			<template slot="item" scope="props">
+				<!-- include contents of slot -->
+				<slot name="item" v-bind="props"></slot>
+			</template>
+
+		</draggable-list>
+
 	</div>
 </template>
 	
 <script>
-	import ProductListItem from 'components/ProductListItem';
-	import Vue from 'vue';
+	import DraggableList from '@/components/DraggableList';
+
+	const productTransition = {
+		name : 'product', 
+		duration : {leave : 400, enter : 500}
+	}
 
 	export default {
 		name : "product-list",
 
 		props : {
 			'products'   : {required : true, type : Array},
-			'editing'    : {required : false, default : false, type : Boolean},
-			'focusId'    : {required : false, default : null, type : String}
+			'draggable'  : {required : false, default : false, type : Boolean}
 		},
 
-		data : function () {
-			const eventProxy = new Vue();
-
-			eventProxy.$on('proxy', (name, ...args) => {
-				this.$emit('item' + name.charAt(0).toUpperCase() + name.substr(1), ...args);
-			});
-
-			return {eventProxy};
+		data() {
+			return {
+				transition : this.products.length ? productTransition : null
+			}
 		},
+
+		watch : {
+			products(newValue) {
+				this.transition = newValue.length ? productTransition : null;
+			}
+		},	
 
 		computed : {
 			empty() {
@@ -53,24 +57,28 @@
 			}
 		},
 
+		methods : {
+			handleDrop(args) {
+				this.$emit('itemDrop', args);
+			}
+		},
+
 		components : {
-			ProductListItem
+			DraggableList
 		}
 	}
 </script>
 
 <style lang="scss" rel="stylesheet/scss">
-	@import '~style/functions';
-	@import '~style/variables';
-	@import '~style/fa/variables';
-	@import '~style/animations';
+	@import '~@/style/functions';
+	@import '~@/style/variables';
+	@import '~@/style/fa/variables';
+	@import '~@/style/mixins';
 
 	.product-list {
 
 		&--empty {
-			display:flex; 
-			align-content: center; 
-			align-items: center; 
+			@include centered-content();
 			height:100%;
 		}
 

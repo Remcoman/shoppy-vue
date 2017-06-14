@@ -1,308 +1,225 @@
-<template>
-	<div class="page page-recipe-details" :class="{'page--loading' : loading, 'page--centered-content' : notFound}">
-
-		<div class="header header--page page-recipe-details__header">
-			<h1 class="header__title page-recipe-details__title">
-				<input class="page-recipe-details__input" maxlength="100" type="text" v-if="editing" v-model="recipeName" @change="changeName">
-				<span class="page-recipe-details__title-text" v-else>{{recipe.name}}</span>
-			</h1>
-
-			<div class="header__btns page-recipe-details__btns" v-if="found">
-				<template v-if="editing">
-					<button class="icon-btn page-recipe-details__edit-btn primary-color" @click="setEditing({value : false})">
-						<i class="fa fa-check"></i>
-					</button>
-				</template>
-
-				<template v-else>
-					<button class="icon-btn page-recipe-details__edit-btn primary-color" @click="setEditing({value : true})">
-						<i class="fa fa-pencil"></i>
-					</button>
-				</template>
-			</div>
-		</div>
-
-		<div class="page-recipe-details__content" v-if="found">
-			<div class="page-recipe-details__pic-wrap">
-				<button v-if="editing" class="icon-btn page-recipe-details__image-btn primary-color" @click="setImage">
-					<i class="fa fa-camera"></li>
-				</button>
-
-				<image-frame class="page-recipe-details__pic" :src="'http://lorempixel.com/400/200/food'"></image-frame>
-			</div>
-
-			<div class="page-recipe-details__inner">
-
-				<h2 class="h-border margin-bottom page-recipe-details__ingredients-header">
-					<span class="page-recipe-details__ingredients-header-text">Ingredi&euml;nten</span>
-
-					<button v-if="editing" class="icon-btn page-recipe-details__add-btn primary-color-bg" @click="newDummy">
-						<i class="fa fa-plus"></li>
-					</button>
-				</h2>
-
-				<product-list
-					v-show="!loading"
-
-					class="page-recipe-details__ingredients"
-
-					:products="productsWithDummy" 
-					:editing="editing" 
-					:focusId="focusId" 
-
-					@itemNameChanged="itemNameChanged"
-					@itemFocusInput="itemFocusInput"
-					@itemRemove="itemRemove"
-					@itemPasteBelow="itemPasteBelow">
-
-					<div slot="empty">Dit recept heeft geen ingredi&euml;nten</div>
-				</product-list>
-
-				<template v-if="recipe.preparation || editing">
-					<h2 class="h-border margin-bottom">Bereiding &amp; Tips</h2>
-
-					<rich-text-editor v-if="editing" class="page-recipe-details__preparation margin-bottom">{{recipe.preparation}}</rich-text-editor>
-					<p class="margin-bottom" v-else>{{recipe.preparation}}</p>
-					
-				</template>
-
-				<button v-if="editing" class="page-recipe-details__delete-btn button warning-color-bg button--fullwidth margin-bottom" @click="remove">
-					<i class="fa fa-warning"></i>
-					Verwijderen
-				</button>
-			</div>
-		</div>
-
-		<div class="page-recipe-details__not-found" v-if="notFound">
-			Dit gerecht bestaat niet meer :-(
-		</div>
-
-	</div>
-</template>
+<template src="./RecipeDetails.html"></template>
+<style src="./RecipeDetails.scss" lang="scss"></style>
 
 <script>
-	import {actionTypes, mutationTypes} from './store';
+	import {actionTypes, mutationTypes, imageProcessingState} from './store'; 
 	import {mapState, mapActions, mapGetters, mapMutations} from 'vuex';
-	import {browseForImg, imgToCanvas, canvasToBlob} from '../../utils/images';
+	import {productsWithDummy} from '@/store/partials/products';
+	import {ProductModel} from '@/models'; 
 
-	import ImageFrame from '../../components/ImageFrame';
-	import ProductList from '../../components/ProductList';
-	import RichTextEditor from '../../components/RichTextEditor';
+	import IconButton from '@/components/IconButton';
+	import EditableImageFrame from '@/components/EditableImageFrame';
+	import ProductList from '@/components/ProductList';
+	import IngredientListItem from '@/components/ProductTypes/IngredientListItem';
+	import ProgressIndicator from '@/components/ProgressIndicator';
+	import EditableHeader from '@/components/EditableHeader';
+	import QuillPreview from '@/components/QuillPreview';
+	import Page from '@/components/Page';
+
+	let richTextEditorPromise;
+
+	const RichTextEditor = () => richTextEditorPromise;
 
 	export default {
 		created() {
 			const {slug} = this.$route.params;
 
+			richTextEditorPromise = import('@/components/RichTextEditor');
+
 			console.debug(`Editing: ${slug}`);
 
-			this.$store.dispatch(actionTypes.RECIPE_DETAILS_LOAD, {slug})
-				.then(doc => {
-					if(doc) {
-						this.recipeName = doc.name;
+			this.$store.commit(mutationTypes.RESET);
+
+			this.$store.dispatch(actionTypes.LOAD, {slug})
+				.then(obj => {
+					if(obj && obj.doc) {
+						this.updateDocumentTitle();
 					}
-				})
+				});
+		},
+
+		destroyed() {
+			this.$store.dispatch(actionTypes.UNLOAD);
 		},
 
 		data : () => ({
-			recipeName : ""
+			uploadProgress : 0,
+			show 		   : true,
+			animateImage   : true
 		}),
 
-		destroyed() {
-			this.$store.dispatch(actionTypes.RECIPE_DETAILS_UNLOAD);
+		watch : {
+			recipe(newValue, oldValue) {
+				if(typeof newValue._id !== "undefined") { //ignore init recipe
+					if(newValue.slug !== oldValue.slug) {
+						this.updateNavigatorLocation();
+					}
+
+					if(newValue.name !== oldValue.name) {
+						this.updateDocumentTitle();
+					}
+				}
+			}
 		},
 
 		methods : {
 			...mapMutations({
-				'setEditing'     : mutationTypes.RECIPE_DETAILS_SET_EDITING,
+				'setEditing'     : mutationTypes.SET_EDITING,
 				'itemFocusInput' : mutationTypes.PRODUCTS_SET_FOCUS,
 				'newDummy'       : mutationTypes.PRODUCTS_NEW_DUMMY,
 				'toggleFilter'   : mutationTypes.SHOPPING_LIST_TOGGLE_FILTER
 			}),
 
 			...mapActions({
-				'itemNameChanged' : actionTypes.PRODUCTS_CHANGE_NAME,
-				'itemRemove'      : actionTypes.PRODUCTS_REMOVE,
-				'itemPasteBelow'  : actionTypes.PRODUCTS_PASTE_BELOW
+				'itemNameChanged' 		: actionTypes.PRODUCTS_CHANGE_NAME,
+				'itemRemove'      		: actionTypes.PRODUCTS_REMOVE,
+				'itemPasteBelow'  		: actionTypes.PRODUCTS_PASTE_BELOW,
+				'itemDrop'  	  		: actionTypes.PRODUCTS_DROP
 			}),
 
+			updateNavigatorLocation() {
+				this.$router.replace(`/recept/${this.recipe.slug}`);
+			},
+
+			updateDocumentTitle() {
+				document.title = `Shoppy - ${this.recipe.name}`;
+			},
+
+			addItemToShoppingList({id}) {
+				this.$store.dispatch(actionTypes.ADD_INGREDIENTS_TO_SHOPPING_LIST, {ids : [id]});
+			},
+
+			addAllToShoppingList() {
+				this.$store.dispatch(actionTypes.ADD_INGREDIENTS_TO_SHOPPING_LIST, {ids : "all"});
+			},
+
+			handlePreparationChange(delta) {
+				this.$store.dispatch(actionTypes.ADD_PREPARATION_CHANGE, {delta});
+			},
+
 			setEditing({value}) {
-				if(value) {
-					this.recipeName = this.recipe.name;
-				}
-			
-				this.$store.commit(mutationTypes.RECIPE_DETAILS_SET_EDITING, {value});
+				this.$store.commit(mutationTypes.SET_EDITING, {value});
 			},
 
-			changeName() {
-				console.log(`New name ${this.recipeName}`);
-				this.$store.dispatch(actionTypes.RECIPE_DETAILS_CHANGE_NAME, {name : this.recipeName});
+			changeName(name) {
+				console.log(`New name ${name}`);
+				this.$store.dispatch(actionTypes.CHANGE_NAME, {name});
 			},
 
-			async setImage() {
-				const img = await browseForImg();
+			handleImageSelected({blob, placeholderURL}) {
+				this.uploadProgress = 0;
 
-				if(!img) {
-					return;
-				}
-
-				const {canvas, ctx} = await imgToCanvas(img, {
-					targetSize : {width : 300, height : 300},
-					fixOrientation : true
+				this.$store.dispatch(actionTypes.SET_IMAGE, {
+					blob,
+					placeholderURL, 
+					onProgress : d => this.uploadProgress = d
 				});
-
-				canvas.style.position = "absolute";
-				canvas.style.left = "0px";
-				canvas.style.top = "0px";
-				canvas.style.zIndex = 10000;
-
-				document.body.appendChild(canvas);
-
-				//const blob = await canvasToBlob(canvas);
-
-				console.log(canvas);
-
-				this.$store.dispatch(actionTypes.RECIPE_DETAILS_SET_IMAGE, {blob});
 			},
 
 			remove() {
 				if(confirm("Weet je het zeker dat je dit recept wilt verwijderen?")) {
-					this.$store.dispatch(actionTypes.RECIPE_DETAILS_REMOVE);
+					this.$store.dispatch(actionTypes.REMOVE);
 					this.$router.push('/recepten');
+				}
+			},
+
+			routeEnter({from, to}, done) {
+				if(from.path === "/recepten") {
+					this.show = false;
+					this.animateImage = false;
+					this.$el.classList.add('page-recipe-details--from-recipe');
+					setTimeout(() => {
+						this.$el.classList.remove('page-recipe-details--from-recipe');
+						this.show = true;
+						done();
+					}, 690);
 				}
 			}
 		},
 
 		computed : {
+
 			...mapState({
-				recipe(state) {
-					return state.recipeDetails.model;   
+				uploading 		: state => state.recipeDetails.uploading,
+				recipe 			: state => state.recipeDetails.model,
+				loading 		: state => state.recipeDetails.loading,
+				loaded 			: state => state.recipeDetails.loaded,
+				editing 		: state => state.recipeDetails.editing,
+				focusId 		: state => state.recipeDetails.ingredients.focus,
+				preparation     : state => state.recipeDetails.preparationIn,
+				placeholder     : state => state.recipeDetails.placeholder,
+				online 			: state => state.online,
+
+				hasNonShoppingListItems({recipeDetails}) {
+					const {ingredients, ingredientsInShoppingList} = recipeDetails;
+					return ingredients.items.some(({_id}) => !(_id in ingredientsInShoppingList));
 				},
 
-				loading(state) { 
-					return state.recipeDetails.loading;
-				},
-				
-				loaded(state) {
-					return state.recipeDetails.loaded;
+				found({recipeDetails}) {
+					return recipeDetails.loaded && typeof recipeDetails.model._id !== "undefined";
 				},
 
-				editing(state) {
-					return state.recipeDetails.editing;
+				notFound({recipeDetails}) {
+					return recipeDetails.loaded && typeof recipeDetails.model._id === "undefined";
 				},
 
-				focusId(state) {
-					return state.recipeDetails.ingredients.focus;   
+				imageProcessing({recipeDetails}) {
+					const image = recipeDetails.model.image;
+
+					if(!recipeDetails.model.hasImage() || recipeDetails.uploading || !recipeDetails.imageProcessingUUID) {
+						return {state : imageProcessingState.NOT_STARTED, error : null};
+					}
+
+					//assume not ready	
+					if(image.state.uuid !== recipeDetails.imageProcessingUUID) {
+						return {state : imageProcessingState.STARTED, error : null};
+					}
+
+					if(image.state.code === "success") {
+						return {state : imageProcessingState.SUCCESS, error : null};
+					}
+					else {
+						return {state : imageProcessingState.FAIL, error : new Error(image.state.reason)};
+					}
+				},
+
+				resolvedImages({recipeDetails}) {
+					return recipeDetails.uploading ? [] : recipeDetails.model.resolvedImages();
+				},
+
+				ingredients({recipeDetails}) {
+					return productsWithDummy(recipeDetails.ingredients).map(item => {
+						if(item._id in recipeDetails.ingredientsInShoppingList) {
+							return new ProductModel({...item, addedToShoppingList : true});
+						}
+						return item;
+					});
+				},
+
+				hasPreparation({recipeDetails}) {
+					return recipeDetails.model.hasPreparation();
 				}
 			}),
 
-			...mapGetters([
-				'found',
-				'notFound',
-				'productsWithDummy'
-			]),
-			
+			imageProcessingStarted() {
+				return this.imageProcessing.state === imageProcessingState.STARTED;
+			},
+
+			imageProcessingError() {
+				return this.imageProcessing.error;
+			}
 		},
 
 		components : {
-			ImageFrame,
+			EditableImageFrame,
+			IconButton,
 			ProductList,
-			RichTextEditor
+			RichTextEditor,
+			ProgressIndicator,
+			EditableHeader,
+			IngredientListItem,
+			QuillPreview,
+			Page
 		}
 	}
 </script>
-
-<style lang="scss" rel="stylesheet/scss">
-	@import '~style/functions';
-	@import '~style/variables';
-	@import '~style/mixins';
-
-	.page-recipe-details {
-
-		&__not-found {
-			text-align:center;
-			width:100%;
-		}
-
-		&__ingredients-header {
-			position:relative;
-		}
-
-		&__add-btn {
-			color:#fff;
-			position:absolute;
-			right:0;
-			bottom:px-rem(5px);
-		}
-
-		&__pic-wrap {
-			position:relative;
-			@include float-left;
-			@include margin-bottom;
-		}
-
-		&__title-text {
-			@include cropped-text;
-		}
-
-		&__image-btn {
-			position:absolute;
-			bottom:px-rem($verticalMargin);
-			right:px-rem($horizontalMargin);
-			font-size:1.5em;
-			z-index:1;
-			> .fa {font-size:.7em;}
-		}
-		
-		&__pic {
-			width: 100%;
-			height: 30vh;
-			min-height:150px;
-			@include float-left;
-		}
-
-		&__input {
-			font:inherit;
-			color:inherit;
-			text-align:center;
-			background:transparent;
-			border:0;
-			border-top-left-radius:15px 50%;
-			border-top-right-radius:15px 50%;
-			border-bottom-left-radius:15px 50%;
-			border-bottom-right-radius:15px 50%;
-			background:rgba(0,0,0,.1);
-			height:1.6em;
-			padding:0 px-rem(10px);
-
-			&:focus {outline:none;}
-		}
-
-		&__content {
-			float:left;
-			width:100%;
-		}
-
-		&__inner {
-			clear:both;
-			margin:0 px-rem($horizontalMargin);
-		}
-
-		&__preparation {
-			@include float-left;
-			@include margin-bottom(2);
-			height:px-rem(200px);
-		}
-
-		&__ingredients {
-			@include margin-bottom(2);
-		}
-
-		&__form {
-			position:absolute;
-			left:-9999px;
-			top:-9999px;
-		}
-
-		.product-list__empty {text-align:left;}
-	}
-</style>

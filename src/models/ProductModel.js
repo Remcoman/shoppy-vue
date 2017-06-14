@@ -2,34 +2,21 @@
  * Created by remco on 07/10/16.
  */
 
-export default class ProductModel {
-	constructor(data) {
+import createFactory from './factory';
 
-		//reserved pouch db props
-		this._id = undefined;
-		this._rev = undefined;
-		this._deleted = false;
+const ProductModel = createFactory(() => ({
+	_id : undefined,
+	_rev : undefined,
+	_deleted : false,
+	type : "product",
+	name : "",
+	done : false,
+	dateAdded : null,
+	dummy : false,
+	order : null,
+	shoppingList : false,
+	recipeID : null,
+	origin : {}
+}))
 
-		this.type = "product";
-		this.name = "";
-		this.done = false;
-		this.dateAdded = null;
-		this.dummy = false;
-
-		this.isInShoppingList = false;
-		this.recipeID = null;
-		this.originRecipeID = null;
-
-		if(data) {
-			Object.assign(this, data);
-		}
-	}
-
-	get id() {
-		return this._id;
-	}
-
-	set id(value) {
-		this._id = value;
-	}
-}
+export default ProductModel;

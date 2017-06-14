@@ -1,0 +1,80 @@
+@import '~@/style/variables';
+@import '~@/style/easings';
+@import '~@/style/fa/variables';
+@import '~@/style/mixins';
+
+.new-form-transition {
+    @keyframes enter-new-form {
+        0% {transform:translateY(-100%);}
+        100% {transform:translateY(0);}
+    }
+
+    @keyframes leave-new-form {
+        0% {transform:translateY(0);}
+        100% {transform:translateY(-100%);}
+    }
+
+    &-leave-active {
+        animation:leave-new-form .4s ease-out; 	
+    }
+
+    &-enter-active {
+        animation:enter-new-form .4s ease-out; 
+    }
+}
+
+.page-recipes {
+
+    .page__main:after {
+        content: "";  
+        position: absolute; 
+        left: 0;
+        top: 0;
+        width: 100%;
+        bottom: 0;
+        background: rgba(0,0,0,.3);
+        @include fadeOut;
+    }
+
+    &--adding .page__main:after {
+        @include fadeIn;
+    }
+
+    &--to-details {
+
+        //fade out
+        .recipe:not(.recipe--selected) {
+            @include fadeOut;
+        }
+
+        .recipe {
+            &--selected { transition:transform .4s .3s $easeInOutQuint;
+                > .recipe__pic {
+                    transition: .2s .4s $easeInOutQuint;
+                }
+
+                > .recipe__name {
+                    @include fadeOut;
+                }
+            }
+        }
+    }
+
+    &__add-btn {
+        @include fadeIn;
+        .page-recipes--adding & {
+            @include fadeOut;
+        }
+    }
+
+    &__add-form {
+        position: fixed;
+        top: $headerHeight;
+        left: 0;
+    }
+
+    &__list {
+        padding-bottom: 20px;
+        min-height: calc(100vh - #{$headerHeight});
+    }
+}

@@ -3,18 +3,20 @@ $rootFontSize:14px;
 $bodyFontSize:1rem;
 $xxlFontSize:1.3rem;
 $xlFontSize:1.2rem;
+$xsFontSize:.8em;
 
 //colors
 $textColor:#000;
+$headerColor: #666;
 $primaryColor:#2ad4b0;
 $whiteColor:#fafafa;
-$warningColor:#ff6f00;
+$warningColor:#fba665;
 
-$bodyFontFamily:'Lato-Regular', sans-serif;
+$bodyFontFamily:'Lato-Regular', sans-serif; 
 
 $headerHeight:50px;
 $horizontalMargin: 15px;
 $verticalMargin: 20px;
 $errorTooltipHeight: 40px;
 
-$zIndexes: menu, page-container, error-tooltip, header;
+$zIndexes: menu, error-tooltip, page-container, header;

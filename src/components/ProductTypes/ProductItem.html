@@ -1,0 +1,39 @@
+<div class="product" :class="{
+	'product--focused' : focused, 
+	'product--flash-highlight' : flashHighlight, 
+	'product--done' : !editable && product.done,
+	'product--editing' : editable
+	}">
+
+	<div class="product__inner">
+		<button :disabled="product.dummy" @click="remove" class="product__remove-btn">
+			<i class="fa fa-minus-circle"></i>
+		</button>
+
+		<div class="product__wrap" ref="wrap" @click="clickItem">
+			<pre class="product__name" v-if="!editable">{{product.name}}</pre>
+
+			<form @submit.prevent="handleChange(false)" class="product__form" v-if="editable">
+				<multiline-text-input class="product__input"
+					:maxlength="100"
+					:focus="focused"
+					@focus="handleFocus" 
+					@blur="handleChange(true)" 
+					@enter="handleChange(false)" 
+					@paste="handlePaste" 
+					v-model="name">
+				</multiline-text-input>
+			</form>
+
+			<slot name="footer"></slot>
+		</div>
+		
+		<slot name="flash-message"></slot>
+
+		<transition name="fade" mode="out-in">
+			<slot name="buttons"></slot>
+			<div key="dragHandle" v-if="dragHandle" class="product__drag-icon" data-drag-handle></div>
+		</transition>
+	</div>
+	
+</div>

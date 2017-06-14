@@ -1,32 +1,44 @@
+import config from 'config';
+import getSlug from 'speakingurl';
+import createFactory from './factory';
 
-export default class RecipeModel {
-	constructor(data) {
+const EMPTY_IMAGE = [];
 
-		//reserved pouch db props
-		this._id = undefined;
-		this._rev = undefined;
-		this._deleted = false;
+const defaultProps = () => ({
+	_id : undefined,
+	_rev : undefined,
+	_deleted : false,
 
-		this.type = "recipe";
-		this.name = "";
-		this.preparation = "";
-		this.dateAdded = null;
-		this.image = {
-			high : null,
-			med : null,
-			low : null
+	type : "recipe",
+	name : "",
+	slug : "",
+	preparation : {},
+	dateAdded : null,
+
+	image : []
+});
+
+const RecipeModel = createFactory(defaultProps, {
+	hasImage() {
+		return this.image && Array.isArray(this.image.file) && this.image.file.length > 0;
+	},
+
+	hasPreparation() {
+		return this.preparation && typeof this.preparation.rev !== "undefined";
+	},
+
+	resolvedImages() {
+		if(!this.hasImage()) {
+			return [];
 		}
-
-		if(data) {
-			Object.assign(this, data);
-		}
+		return this.image.file.map(image => {
+			return {...image, url : config.imageBasePath + "/" + image.url};	
+		});
 	}
-
-	get id() {
-		return this._id;
+}, {
+	generateSlug(name) {
+		return getSlug(name);
 	}
+})
 
-	set id(value) {
-		this._id = value;
-	}
-}
+export default RecipeModel;

@@ -10,33 +10,47 @@
 			enter-class="recipe--enter"
 			enter-active-class="recipe--enter-active"
 			v-show="!empty">
-			
-			<recipe-list-item
+
+			<slot name="item" 
 				v-for="recipe in recipes"
-				:key="recipe.id"
 				:recipe="recipe"
-				@click="clickRecipe"
+				:intersectionObserver="intersectionObserver"
 				>
-			</recipe-list-item>
+			</slot>
 			
 		</transition-group>
-
 	</div>
 </template>
 
 <script>
-	import RecipeListItem from './RecipeListItem';
+	import IntersectionObserver from '@/utils/intersection-observer';
 
 	export default {
 		name : "recipe-list",
+
+		created() {
+			this.intersectionObserver = new IntersectionObserver({
+				axis : "x"
+			});
+		},
+
+		destroyed() {
+			this.intersectionObserver.disconnect();
+		},
 
 		props : {
 			recipes : {type : Array, required : true}
 		},
 
+		data() {
+			return {
+				intersectionObserver : null
+			}
+		},
+
 		methods : {
-			clickRecipe(recipe) {
-				this.$emit('clickRecipe', recipe);
+			clickRecipe(event) {
+				this.$emit('clickRecipe', event);
 			}
 		},
 
@@ -44,17 +58,13 @@
 			empty() {
 				return this.recipes.length === 0;
 			}
-		},
-
-		components : {
-			RecipeListItem
 		}
 	}
 </script>
 
 <style lang="scss">
-	@import '~style/variables';
-	@import '~style/fa/variables';
+	@import '~@/style/variables';
+	@import '~@/style/fa/variables';
 
 	.recipe-list {
 		float:left;

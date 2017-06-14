@@ -1,0 +1,115 @@
+@import '~@/style/functions';
+@import '~@/style/variables';
+@import '~sass-burger';
+
+.app { 
+    float: left; 
+    width: 100%; 
+
+    &--show-menu { 
+        overflow: hidden; 
+    }
+
+    &--prevent-overflow {
+        overflow: hidden;
+    }
+
+    &__page-container {
+        transition: transform .4s ease-out;
+        float: left;
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
+        background-color: $whiteColor;
+        z-index: index($zIndexes, page-container);
+
+        > .page__header {
+            left: 0;
+        }
+
+        .app.app--show-error & {
+            transform: translateY($errorTooltipHeight); 
+            height: calc(100% - #{$errorTooltipHeight});
+        }
+
+        .app.app--show-menu & {
+            transform: perspective(1500px) translateX(50vw) rotate3d(0, 1, 0, -45deg); 
+
+            &:after {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%; 
+                height: 100%;
+            }
+        }
+    }
+
+    &__menu {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        background: #444;
+        height: 100vh;
+        z-index: index($zIndexes, menu);
+        text-align: center;
+        display: flex;
+        align-items: center;
+        font-size: 1.3em;
+
+        ul {
+            list-style: none; 
+            text-align: center; 
+            width: 60vw;
+            padding: 0;
+        }
+        
+        li {
+            display: inline; 
+            padding: 0;
+        }
+    }
+
+    &__menu-link {
+        color: $whiteColor; 
+        text-decoration: none; 
+        display: block; 
+        margin-bottom: 5vh;
+    }
+
+    &__menu-btn {
+        font-size: 1.5em; 
+        width: px-rem(20px); 
+        height: px-rem(20px); 
+        margin-left: px-rem($horizontalMargin); 
+    }
+
+    &__menu-hamburger {
+        @include burger(20px, 3px, 4px, $whiteColor);
+        .app.app--show-menu & {
+            @include burger-to-cross;
+        }
+    }
+
+    &__error-tooltip {
+        display: block;
+        position: fixed;
+        top: 0;
+        background: $warningColor;
+        color: $whiteColor;
+        width: 100%;
+        height: $errorTooltipHeight;
+        line-height: $errorTooltipHeight;
+        visibility: hidden;
+        transition: visibility 0s .4s;
+        padding: 0 15px;
+        z-index: index($zIndexes, error-tooltip);
+
+        .app.app--show-error & {
+            visibility: visible; 
+            transition: none;
+        }
+    }
+}

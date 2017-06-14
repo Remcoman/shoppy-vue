@@ -1,0 +1,138 @@
+<page v-show="show" 
+    class="page-recipe-details" 
+    :loading="loading"
+    :showNotice="notFound">
+
+    <template slot="header-title">
+        <editable-header :value="recipe.name" :enabled="editing" @input="changeName"></editable-header>
+    </template>
+
+    <template slot="header-btns">
+        <transition name="rolling-thunder">
+            <div v-if="found && show">
+                <icon-button v-if="editing" icon="check" class="page-recipe-details__edit-btn" @click="setEditing({value : false})"></icon-button>
+                <icon-button v-else icon="pencil" class="page-recipe-details__edit-btn" @click="setEditing({value : true})"></icon-button>
+            </div>
+        </transition>
+    </template>
+
+    <template slot="content">
+        <editable-image-frame 
+            :animation="animateImage"
+            :src="resolvedImages"
+            :placeholder="placeholder"
+            :editable="editing" 
+            :online="online" 
+            :error="imageProcessingError"
+            :busy="imageProcessingStarted"
+            @imageSelected="handleImageSelected"
+            class="page-recipe-details__pic-wrap"
+            :class="{
+                'page-recipe-details__pic-wrap--has-image' : !!placeholder 
+            }"
+            >
+
+            <template scope="editor">
+                
+                <!-- notices -->
+                <transition name="fade" appear mode="out-in">
+                    <progress-indicator 
+                        :size="30" 
+                        :color="'#2ad4b0'" 
+                        :value="uploadProgress"
+                        class="page-recipe-details__pic-loader"
+                        v-if="uploading"
+                        >
+                    </progress-indicator>
+
+                    <div class="page-recipe-details__pic-notice page-recipe-details__pic-notice--warning" v-else-if="editor.notice === 'error' && show">
+                        {{ editor.error }}
+                    </div>
+
+                    <div class="page-recipe-details__pic-notice page-recipe-details__pic-notice--drop" v-else-if="editor.notice === 'drag_over' && show"></div>
+
+                    <div class="page-recipe-details__pic-notice page-recipe-details__pic-notice--warning" v-else-if="editor.notice === 'offline' && show">
+                        Je kan nu geen<br>afbeelding aanpassen
+                    </div>
+
+                    <div class="page-recipe-details__pic-notice page-recipe-details__pic-notice--busy" v-else-if="editor.notice === 'busy' && show">
+                        De afbeelding wordt verwerkt
+                    </div>
+
+                    <div class="page-recipe-details__pic-notice page-recipe-details__pic-notice--no-src" v-else-if="editor.notice === 'no_src' && show">
+                        Je hebt nog geen afbeelding geselecteerd
+                    </div>
+                </transition>
+
+                <transition name="rolling-thunder">
+                    <icon-button icon="camera" v-show="editor.allowSelectImage" @click="editor.browseImage" class="page-recipe-details__image-btn"></icon-button>
+                </transition>
+            </template>
+
+        </editable-image-frame> 
+
+        <div class="page-recipe-details__content">
+
+            <h2 class="margin-bottom page-recipe-details__ingredients-header">
+                <span class="page-recipe-details__ingredients-header-text">Ingredi&euml;nten</span>
+
+                <transition name="rolling-thunder" mode="out-in">
+                    <icon-button key="addIngredient" v-if="editing" class="page-recipe-details__btn-add-ingredient" @click="newDummy" :reverse="true" icon="plus"></icon-button>
+                    <icon-button key="addAllToShoppingList" v-else-if="hasNonShoppingListItems" class="page-recipe-details__btn-all-shopping-list" @click="addAllToShoppingList" :reverse="true" icon="shopping-basket"></icon-button>
+                </transition>
+            </h2> 
+
+            <product-list
+                v-if="!loading && show"
+                class="page-recipe-details__ingredients"
+                :products="ingredients"
+                :draggable="editing"
+                @itemDrop="itemDrop"
+                >
+
+                <template slot="item" scope="props">
+                    <ingredient-list-item
+                        :dragHandle="editing && ingredients.length > 1"
+                        :key="props.item._id"
+                        :product="props.item"
+                        :editable="editing"
+                        :focused="focusId === props.item._id"
+                        
+                        @nameChanged="itemNameChanged"
+                        @focusInput="itemFocusInput"
+                        @remove="itemRemove"
+                        @pasteBelow="itemPasteBelow"
+                        @addToShoppingList="addItemToShoppingList"
+                    ></ingredient-list-item>
+                </template>
+
+                <div slot="empty">Dit recept heeft geen ingredi&euml;nten</div>
+            </product-list>
+
+            <transition name="fade">
+                <div v-if="(hasPreparation || editing) && show" class="page-recipe-details__prep">
+                    <h2 class="margin-bottom">Bereiding &amp; Tips</h2>
+
+                    <rich-text-editor
+                        v-if="editing" 
+                        class="page-recipe-details__prep-editor margin-bottom" 
+                        :value="preparation"
+                        @input="handlePreparationChange">
+                    </rich-text-editor>
+
+                    <quill-preview :delta="preparation" class="margin-bottom" v-else>{{recipe.preparation}}</quill-preview>
+                </div>
+            </transition>
+
+            <button v-if="editing" class="page-recipe-details__delete-btn button button--fullwidth warning-color-bg margin-bottom" @click="remove">
+                <i class="fa fa-warning"></i>
+                Verwijderen
+            </button>
+        </div>
+    </template>
+
+    <div slot="notice">
+        Dit gerecht bestaat niet meer :-(
+    </div>
+
+</page>

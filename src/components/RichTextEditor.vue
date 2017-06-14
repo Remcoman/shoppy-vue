@@ -6,12 +6,43 @@
 
 <script>
 	import Quill from 'quill';
+	import Delta from 'quill-delta';
 
 	export default {
+		name : "rich-text-editor",
+
+		props : {
+			value : {type : Object, required : false, default : null}
+		},
+
 		mounted() {
 			this.editor = new Quill(this.$refs.editor, {
-				theme : 'snow'
+				theme : 'snow',
+
+				modules : {
+					toolbar : [
+						['bold', 'italic', 'underline', 'strike'],
+
+						 [{ 'color': [] }],
+
+						[{ 'list': 'ordered'}, { 'list': 'bullet' }],
+
+						['clean']
+					]
+				}
 			});
+
+			this.editor.on('text-change', change => {
+				this.$emit('input', change);
+			});
+
+			this.editor.setContents(this.value, 'silent');
+		},
+
+		watch : {
+			value(newValue) {
+				this.editor.setContents(newValue, 'silent');
+			}
 		},
 
 		destroyed() {

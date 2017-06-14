@@ -1,0 +1,59 @@
+
+<page class="page-recipes" :loading="loading" @click="stopAdding" :class="{
+    'page-recipes--adding' : addFormShown
+}">
+    <template slot="header-title">
+        Recepten
+    </template>
+
+    <template slot="header-btns">
+        <icon-button icon="plus" class="page-recipes__add-btn" @click="add"></icon-button>
+    </template>
+
+    <template slot="content">
+         <transition name="new-form-transition">
+            <recipe-add-form 
+                ref="addForm" 
+                class="page-recipes__add-form" 
+                @submit="handleAddFormSubmit" 
+                @pasteURL="handleAddFormPasteURL" 
+                @clearPreview="handleClearPreview"
+                :urlPreviewLoading="preview.loading"
+                :urlPreview="preview.last"
+                :urlPreviewError="preview.error"
+                :offline="offline"
+                :focus="addFormShown" v-if="addFormShown">
+            </recipe-add-form>
+        </transition>
+
+        <recipe-list 
+            v-show="!loading"
+            class="page-recipes__list" 
+            :recipes="recipesIncludingPending" 
+            >
+
+            <template slot="item" scope="props">
+                <recipe-list-item
+                    v-if="!props.recipe.pendingSave"
+                    :key="props.recipe.id"
+                    :recipe="props.recipe"
+                    :offline="offline"
+                    :placeholderLoader="recipePlaceholderLoader"
+                    :intersectionObserver="props.intersectionObserver"
+                    :linkTemplate="linkTemplate"
+                    @click="clickRecipe"
+                    >
+                </recipe-list-item>
+
+                <pending-recipe-list-item
+                    v-else
+                    :key="props.recipe.id"
+                    :recipe="props.recipe"
+                    >
+                </pending-recipe-list-item>
+            </template>
+
+            <div slot="empty">Geen recepten :-(</div>
+        </recipe-list>
+    </template>
+</page>

@@ -1,0 +1,58 @@
+@import './easings';
+
+.fade {
+    &-enter, &-leave-active {
+        opacity:0;
+    }
+
+    &-enter-active, &-leave-active {
+        transition:opacity .5s $easeOutCubic;
+    }
+}
+
+.fade-fast {
+    &-enter, &-leave-active {
+        opacity:0;
+    }
+
+    &-leave-active {
+        transition:opacity .1s $easeOutExpo;
+    }
+
+    &-enter-active, &-leave-active {
+        transition:opacity .2s $easeOutExpo;
+    }
+}
+
+.zoom {
+    &-enter {
+        opacity:0;
+        transform:scale(.9);
+    }
+
+    &-leave-active {
+        opacity:0;
+        transition:opacity .3s $easeOutCubic;
+    }
+
+    &-enter-active {
+        opacity:1;
+        transition:opacity .5s $easeOutCubic, transform .5s $easeOutCubic;
+    }
+}
+
+.rolling-thunder {
+    &-enter {
+        opacity:0;
+        transform:translateX(30px) rotate(180deg);
+    }
+
+    &-enter-active {
+        transition:transform .6s $easeInOutCubic, opacity .5s $easeOutCubic;
+    }
+
+    &-leave-active {
+        opacity:0;
+        transition:opacity .2s $easeOutCubic;
+    }
+}

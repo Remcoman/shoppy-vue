@@ -1,0 +1,59 @@
+<page class="page-shopping-list" :loading="loading" :class="{'page-shopping-list--editing' : editing}">
+
+    <template slot="header-title">
+        Boodschappen
+    </template>
+
+    <template slot="header-btns">
+        <template v-if="editing">
+            <icon-button icon="trash" class="page-shopping-list__clear-btn" @click="clear"></icon-button>
+            <icon-button icon="check" class="page-shopping-list__ready-btn" @click="setEditing({value : false})"></icon-button>
+        </template>
+
+        <template v-else>
+            <icon-button icon="filter" class="page-shopping-list__filter-btn" @click="toggleFilter" :class="{'page-shopping-list__filter-btn--filtering' : filterTodo}">
+                <span class="icon-btn primary-color page-shopping-list__filter-cancel">
+                    <i class="fa fa-times"></i>
+                </span>
+            </icon-button>
+
+            <icon-button icon="pencil" class="page-shopping-list__edit-btn" @click="setEditing({value : true})"></icon-button>
+        </template>
+    </template>
+
+    <template slot="content">
+        <product-list
+            v-show="!loading"
+            class="page-shopping-list__list"
+            :products="shoppingListProducts" 
+            :draggable="editing"
+            @itemDrop="itemDrop"
+            >
+
+            <template slot="item" scope="props">
+                <shopping-list-item
+                    :dragHandle="editing && shoppingListProducts.length > 1"
+                    :key="props.item._id"
+                    :product="props.item"
+                    :editable="editing"
+                    :focused="focusId === props.item._id"
+                    
+                    @nameChanged="itemNameChanged"
+                    @focusInput="itemFocusInput"
+                    @done="itemDone"
+                    @remove="itemRemove"
+                    @pasteBelow="itemPasteBelow"
+                ></shopping-list-item>
+            </template>
+
+            <div slot="empty">
+                <template v-if="filterTodo">Alle boodschappen zijn afgevinkt</template>
+                <template v-else>Geen boodschapjes :-(</template>
+            </div>
+        </product-list>
+
+        <transition name="zoom">
+            <icon-button v-if="editing" :reverse="true" icon="plus" class="page-shopping-list__add-btn" @click="newDummy"></icon-button>
+        </transition>
+    </template>
+</page>

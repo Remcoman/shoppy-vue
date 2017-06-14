@@ -1,0 +1,17 @@
+<div class="app" :class="{'app--online' : online, 'app--show-error' : errorTooltipShown, 'app--show-menu' : menuOpened, 'app--prevent-overflow' : preventOverflow}">
+    <div class="app__error-tooltip">
+        <i class="fa fa-warning margin-right"></i><span>{{errorText}}</span>
+    </div>
+
+    <app-menu></app-menu>
+
+    <main class="app__page-container" @click="closeMenu">
+        <div id="header" class="page__header primary-color-bg">
+            <button class="app__menu-btn" @click.stop="toggleMenu">
+                <span class="app__menu-hamburger"></span>
+            </button>
+        </div>
+
+        <transition-router-view :customTransitions="customTransitions" :defaultTransition="defaultTransition"></transition-router-view>
+    </main>
+</div>

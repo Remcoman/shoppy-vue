@@ -8,8 +8,11 @@ build:
         - npm-install:
             use-cache: false
         - script:
+            name: test
+            code: NODE_ENV=testing npm run test
+        - script:
             name: build
-            code: npm run build
+            code: NODE_ENV=production npm run build
 
 deploy:
     steps:

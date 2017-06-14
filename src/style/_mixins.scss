@@ -1,11 +1,39 @@
 @import './variables';
 @import './functions';
 
+@mixin fadeOut {
+	transition:opacity .4s, visibility 0s .4s;
+	visibility: hidden;
+	opacity:0;
+}
+
+@mixin fadeIn {
+	transition:opacity .4s;
+	visibility: visible;
+	opacity:1;
+}
+
+@mixin abs-centered-self($axis:both) {
+	position:absolute;
+	@if($axis == both) {
+		left:50%;
+		top:50%;
+		transform:translate(-50%, -50%);
+	}
+	@else if($axis == hor) {
+		left:50%;
+		transform:translateX(-50%);
+	}
+	@else if($axis == vert) {
+		top:50%;
+		transform:translateY(-50%);
+	}
+}
+
 @mixin centered-content {
 	display:flex; 
 	align-content: center; 
-	align-items: center; 
-	height:100vh;
+	align-items: center;
 }
 
 @mixin cropped-text {
@@ -22,11 +50,13 @@
 @mixin header-h1 {
 	font-size:$xxlFontSize;
 	font-weight:normal;
+	color:$headerColor;
 }
 
 @mixin header-h2 {
 	font-size:$xlFontSize;
 	font-weight:normal;
+	color:$headerColor;
 }
 
 @mixin header-border {

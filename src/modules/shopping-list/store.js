@@ -1,13 +1,19 @@
-import * as productsStore from '../../store/products';
-import {mutationTypes as appMutationTypes} from '../../store/app';
-import {ProductModel} from '../../models';
+import * as productPartials from '@/store/partials/products';
+import {mutationTypes as appMutationTypes} from '@/modules/app/store';
+import {ProductModel} from '@/models';
+import Vue from 'vue';
+import {insertOrder} from '@/services/db/ordering';
 
 const ERROR_LOAD_FAILED = new Error("Er ging iets mis bij het laden van de producten");
 
 export const mutationTypes = {
-	SHOPPING_LIST_TOGGLE_FILTER  	  : "shopping-list/TOGGLE_FILTER",
-	SHOPPING_LIST_LOAD_START 		  : "shopping-list/LOAD_START",
-	SHOPPING_LIST_LOAD_SUCCESS 		  : "shopping-list/LOAD_SUCCESS",
+	RESET							  : "shopping-list/RESET",
+
+	TOGGLE_FILTER  	  				  : "shopping-list/TOGGLE_FILTER",
+	LOAD_START 		  				  : "shopping-list/LOAD_START",
+	LOAD_SUCCESS 		  			  : "shopping-list/LOAD_SUCCESS",
+	SET_RECIPE_ORIGINS  			  : "shopping-list/SET_RECIPE_ORIGINS",
+	UPDATE_RECIPE_ORIGIN			  : "shopping-list/UPDATE_RECIPE_ORIGIN",
 
 	PRODUCTS_SET_FOCUS 			  	  : "shopping-list/SET_FOCUS",
 	PRODUCTS_SET_EDITING 	      	  : "shopping-list/SET_EDITING",
@@ -19,8 +25,9 @@ export const mutationTypes = {
 };
 
 export const actionTypes = {
-	SHOPPING_LIST_LOAD 	 : "shopping-list/LOAD",
-	SHOPPING_LIST_UNLOAD : "shopping-list/UNLOAD",
+	LOAD 	 			 : "shopping-list/LOAD",
+	UNLOAD 				 : "shopping-list/UNLOAD",
+	ADD_INGREDIENTS 	 : "shopping-list/ADD_INGREDIENTS",
 
 	PRODUCTS_ADD 		 : "shopping-list/ADD",
 	PRODUCTS_CHANGE_NAME : "shopping-list/CHANGE_NAME",
@@ -28,12 +35,18 @@ export const actionTypes = {
 	PRODUCTS_REMOVE 	 : "shopping-list/REMOVE",
 	PRODUCTS_UPDATE 	 : "shopping-list/UPDATE",
 	PRODUCTS_PASTE_BELOW : "shopping-list/PASTE_BELOW",
-	PRODUCTS_TOGGLE_DONE : "shopping-list/TOGGLE_DONE"
+	PRODUCTS_TOGGLE_DONE : "shopping-list/TOGGLE_DONE",
+	PRODUCTS_DROP 		 : "shopping-list/PRODUCTS_DROP"
 };
+
+const extractProducts = docs => docs.filter(doc => doc.type === "product");
+const extractRecipes  = docs => docs.filter(doc => doc.type === "recipe");
 
 const createState = () => {
 	return {
-		...productsStore.createState(),
+		...productPartials.createState(),
+
+		recipeOrigins : {},
 		
 		filterTodo : false,
 		loaded	   : false,
@@ -42,32 +55,23 @@ const createState = () => {
 };
 
 const createActions = ({dbService}) => {
-	const db 	 = dbService.db("shoppy-products");
-	const dbView = db.view("shopping-list");
+	const db 	 = dbService.db("shoppy");
+	const dbView = db.view("products/shopping-list");
 
-	let changesSubscription,
-		syncer;
+	let changesSubscription, syncer;
 
 	return {
-		...productsStore.createActions(
+		...productPartials.createActions({
 			db, 
 			actionTypes, 
 			mutationTypes, 
 			
-			(state, {names, originRecipeID}) => {
-				let opts = {
-					isInShoppingList : true
-				};
-				if(originRecipeID) {
-					opts.originRecipeID = originRecipeID;
-				}
-				const products = names.map(name => new ProductModel({name, ...opts}));
-
-				return {products, idPrefix : null};
+			productFactory : (state, products) => {
+				return products.map(({name,id}) => new ProductModel({name, id, shoppingList : true}));
 			}
-		),
+		}),
 
-		[actionTypes.SHOPPING_LIST_UNLOAD] () {
+		[actionTypes.UNLOAD] () {
 			if(changesSubscription) {
 				changesSubscription.stop();
 				changesSubscription = null;
@@ -79,14 +83,29 @@ const createActions = ({dbService}) => {
 			}
 		},
 
-		async [actionTypes.SHOPPING_LIST_LOAD] ({commit}) {
+		/**
+		 * Adds the given recipe ingredient docs to the shopping list.
+		 */
+		async [actionTypes.ADD_INGREDIENTS] ({state, commit}, {docs}) {
+			let afterId = state.items.length ? state.items[state.items.length-1]._id : null;
+			let startOrder = insertOrder(state.items, afterId, null);
+			
+			return db.add( docs, {startOrder} );
+		},
 
-			commit(mutationTypes.SHOPPING_LIST_LOAD_START);
+		async [actionTypes.LOAD] ({commit}) {
 
-			let docs;
+			commit(mutationTypes.LOAD_START);
+
+			const {replicated, doc} = await db.ensureDesignDoc("products");
+			if(!replicated) {
+				db.localDb.replicate.from(db.remoteDb, {key : "_design/products"});
+			}
+
+			let productDocs;
 
 			try {
-				docs = await dbView.load();
+				productDocs = await dbView.load();
 			}
 			catch(e) {
 				if(e.status !== 404) {
@@ -94,46 +113,76 @@ const createActions = ({dbService}) => {
 					return;
 				}
 				
-				docs = [];
+				productDocs = [];
 			}
 
-			commit(mutationTypes.SHOPPING_LIST_LOAD_SUCCESS);
-			commit(mutationTypes.PRODUCTS_SET_ITEMS, {docs});
+			commit(mutationTypes.LOAD_SUCCESS);
+
+			commit(mutationTypes.SET_RECIPE_ORIGINS, {docs : extractRecipes(productDocs)});
+			commit(mutationTypes.PRODUCTS_SET_ITEMS, {docs : extractProducts(productDocs)});
 
 			changesSubscription = dbView.observeChanges()
 				.on('change', ({doc}) => {
-					if(doc._deleted) {
-						commit( mutationTypes.PRODUCTS_REMOVE_SUCCESS, {doc} );
+					console.log("got change", doc);
+
+					if(doc.type === "recipe") {
+						commit( mutationTypes.UPDATE_RECIPE_ORIGIN, {recipeDoc : doc} );
+						return;
 					}
 					else {
-						commit( mutationTypes.PRODUCTS_ADD_OR_UPDATE_SUCCESS, {doc} );
+						if(doc._deleted) {
+							commit( mutationTypes.PRODUCTS_REMOVE_SUCCESS, {doc} );
+						}
+						else {
+							commit( mutationTypes.PRODUCTS_ADD_OR_UPDATE_SUCCESS, {doc} );
+						}
 					}
 				})
-				.on('error', () => {
-					console.warn("noo");
+				.on('error', e => {
+					console.warn(e);
 				});
 
-			syncer = db.sync();
+			syncer = dbView.sync();
 		}
 	}
 };
 
 const createMutations = () => {
 	return {
-		...productsStore.createMutations(mutationTypes),
+		...productPartials.createMutations({mutationTypes}),
 
-		[mutationTypes.SHOPPING_LIST_LOAD_START] (state) {
+		[mutationTypes.RESET] (state) {
+			Object.assign(state, createState());
+		},
+
+		[mutationTypes.SET_RECIPE_ORIGINS] (state, {docs}) {
+			state.recipeOrigins = docs.reduce((obj, doc) => {
+				obj[doc._id] = doc;
+				return obj;
+			}, {});
+		},
+
+		[mutationTypes.UPDATE_RECIPE_ORIGIN] (state, {recipeDoc}) {
+			if(recipeDoc._deleted) {
+				Vue.delete(state.recipeOrigins, recipeDoc._id);
+			}
+			else {
+				Vue.set(state.recipeOrigins, recipeDoc._id, recipeDoc);
+			}
+		},
+
+		[mutationTypes.LOAD_START] (state) {
 			state.loading = true;
 			state.loaded  = false;
 			state.items   = [];
 		},
 
-		[mutationTypes.SHOPPING_LIST_LOAD_SUCCESS] (state) {
+		[mutationTypes.LOAD_SUCCESS] (state) {
 			state.loading = false;
 			state.loaded  = true;
 		},
 
-		[mutationTypes.SHOPPING_LIST_TOGGLE_FILTER] (state) {
+		[mutationTypes.TOGGLE_FILTER] (state) {
 			state.filterTodo = !state.filterTodo;
 		}
 	}
@@ -146,13 +195,18 @@ export default (ctx) => {
 		actions   : createActions(ctx),
 
 		getters : {
-			filteredProducts(state) {
-				if(state.filterTodo) {
-					return state.items.filter(item => !item.done);
-				}
-				else {
-					return state.items;
-				}
+			shoppingListProducts(state) {
+				let items = productPartials.productsWithDummy(state).map(item => {
+					if(item.origin && item.origin.recipeID in state.recipeOrigins) {
+						const {name, slug} = state.recipeOrigins[item.origin.recipeID];
+						return new ProductModel({...item, recipe : {name, slug}}); //<-- TODO this can be optimized
+					}
+					return item;
+				});
+
+				return state.filterTodo
+					? items.filter(item => !item.done)
+					: items;
 			}
 		}
 	}

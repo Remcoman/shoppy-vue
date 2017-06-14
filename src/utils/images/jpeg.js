@@ -22,19 +22,20 @@ class MarkerReader {
 
 		return {
 			next : () => {
+				
 				if(prevHadPayload) {
 					const length = getLength();
-					//console.debug(`Found length ${length}`);
+					console.debug(`Found length ${length}`);
 					buffer.cursor += length;
 					prevHadPayload = false;
 				}
-
+				
 				if(buffer.eof) {
 					return {done : true};
 				}
 
 				const marker = buffer.getUint16() & 0xff;
-				//console.debug(`Found marker 0x${marker.toString(16)}`);
+				console.debug(`Found marker 0x${marker.toString(16)}`);
 
 				if(!isStandalone(marker)) {
 					prevHadPayload = true;
@@ -66,7 +67,12 @@ function extractInfo(buffer) {
 
 		switch(marker) {
 			case 0xe1 : {
-				info.exif = readExif( readPayload() );
+				try {
+					info.exif = readExif( readPayload() );
+				}
+				catch(e) { //eslint ignore no-empty
+					console.warn('Problem reading exif', e);
+				}				
 				break;
 			}
 

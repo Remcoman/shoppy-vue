@@ -2,6 +2,10 @@ import * as jpeg from './jpeg';
 
 export * from './canvas';
 
+export function imgFromFile(file) {
+	return jpeg.load(file);
+}
+
 let form, input;
 export function browseForImg() {
 	if(!form) {
@@ -25,6 +29,7 @@ export function browseForImg() {
 			}
 		} 
 	}).then(file => {
-		return file ? jpeg.load(file) : null;
+		console.log(file);
+		return file ? imgFromFile(file) : null;
 	});
 }

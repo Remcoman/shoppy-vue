@@ -1,0 +1,177 @@
+@import '~@/style/functions';
+@import '~@/style/easings';
+@import '~@/style/classes';
+@import '~@/style/variables';
+@import '~@/style/fa/variables';
+@import '~@/style/fa/mixins';
+
+.product { 
+	border-bottom: 1px solid #ececec; 
+	background: $whiteColor;
+	transition: background-color .2s ease-out;
+	position: relative;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	&:before {
+		content: "";
+		position: absolute;
+		left: -$horizontalMargin;
+		top: 0;
+		width: 100vw;
+		height: 100%;
+		background-color: rgba(#2ad4b0, .05);
+		visibility: hidden;
+		opacity: 0;
+		will-change: opacity;
+		transition: opacity .3s $easeOutQuint, visibility 0s .3s;
+	}
+
+	&-enter > .product__inner {
+		transform: scaleY(0);
+	}
+
+	&-enter-active > .product__inner {
+		transition: transform .5s $easeOutCirc;
+	}
+
+	&-leave-active > .product__inner {
+		position: absolute;
+    	width: calc(100% - 2rem);
+		margin-bottom: -1px;
+		transform: scaleY(0);
+		transition: transform .4s $easeOutCirc;
+	}
+
+	&-move {
+		.draggable-list:not(.draggable-list--prevent-move) & {
+			transition: transform .4s $easeOutCirc;
+		}
+	}
+
+	&--flash-highlight {
+		position: relative;
+
+		&:before {
+			opacity: 1; 
+			visibility: visible;
+			transition: opacity .1s $easeInCubic;
+			z-index: 2;
+		}
+	}
+
+	&--dragging {
+		z-index: 3;
+		position: relative;
+	}
+
+	&--target {
+		transition: transform .3s $easeOutCubic;
+	}
+
+	&--focused { 
+		position: relative;
+
+		&:before {
+			content: ""; 
+			position: absolute; 
+			z-index: -1; 
+			left: -15px; 
+			right: -15px; 
+			height: 100%; 
+			background-color: #f7f7f7;
+		}
+	}
+
+	&__inner {
+		display: flex; 
+		align-items: center;
+		transform-origin: 0 0;
+	}
+
+	&__drag-icon {
+		@extend .enlarge-clickarea;
+
+		user-select: none; 
+		background: transparent; 
+		margin-left: 30px;
+
+		&:before {
+			@include fa-icon();
+			color: #bbb;
+			content: $fa-var-bars;
+			font-size: 1.4em;
+		}
+	}
+
+	&__add-to-shopping-list-btn {
+		font-size: 1.1em;
+		> i {font-size: .85em;}
+	}
+
+	&__remove-btn {
+		display: block; 
+		padding: 0; 
+		margin-right: -.9em;
+		font-size: px-rem(18px); 
+		color: #f00; 
+		text-align: left; 
+
+		@extend .enlarge-clickarea;
+
+		&[disabled] {
+			opacity: 0 !important; 
+			transition: none;
+		}
+	}
+
+	&__wrap {
+		flex: 2; 
+		padding: .8rem 0;
+		background: $whiteColor;
+		position: relative;
+		z-index: 1;
+		transition: transform .3s $easeOutCubic;
+		transform-origin: 0 0;
+
+		.product--done & {
+			text-decoration: line-through; 
+		}
+
+		.product--editing & {
+			transform: translateX(30px);
+			padding-right: px-rem(13px);
+		}
+	}
+
+	&__name, &__form {
+		display: block; 
+		width: 100%;
+	}
+	
+	&__name, &__input { 
+		letter-spacing: 1px; 
+	}
+
+	&__name {
+		cursor: default; 
+		font: inherit;
+		margin: 0;
+		white-space: pre-wrap;
+
+		.product--done & {
+			opacity: .4;
+		}
+	}
+
+	&__input {
+		border: 0; 
+		background: transparent; 
+		padding: 0; 
+		width: 100%;
+		
+		&:focus {outline: none;}
+	}
+}

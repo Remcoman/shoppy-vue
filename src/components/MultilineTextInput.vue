@@ -1,12 +1,15 @@
 <template>
 	<div class="ml-textinput">
 		<pre class="ml-textinput__mirror"><span >{{dataValue}}</span><br></pre>
-		<textarea ref="textarea" :maxlength="maxlength" v-focus="focus" class="ml-textinput__input" v-model="dataValue" @paste="handlePaste" @focus="handleFocus" @blur="handleBlur"></textarea>
+		<textarea ref="textarea" :maxlength="maxlength" v-focus="focus" class="ml-textinput__input" v-model="dataValue"
+		 @keydown="handleKeydown" @input="handleInput" @paste="handlePaste" @focus="handleFocus" @blur="handleBlur"></textarea>
 	</div>
 </template>
 
 <script>
 	export default {
+		name : "multiline-text-input",
+
 		props : {
 			value : {type : String, required :  false, default : ""},
 			focus : {type : Boolean, required : false, default : false},
@@ -19,7 +22,23 @@
 			}
 		},
 
+		watch : {
+			value(newValue) {
+				this.dataValue = newValue;
+			}
+		},
+
 		methods : {
+			handleInput(e) {
+				this.$emit('input', e.target.value);
+			},
+
+			handleKeydown(e) {
+				if(e.keyCode === 13) {
+					e.preventDefault();
+					this.$emit('enter');
+				}
+			},
 
 			handleFocus(e) {
 				this.$emit('focus', e);

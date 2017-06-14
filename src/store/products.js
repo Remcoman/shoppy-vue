@@ -101,8 +101,7 @@ export const createActions = (db, actionTypes, mutationTypes, productFactory = (
 		[actionTypes.PRODUCTS_ADD] : ({state, rootState}, payload) => {
 			const lastProduct = state.items[state.items.length - 1];
 
-			let {afterId} = payload;
-			let isLast = true;
+			let {afterId} = payload, isLast = true;
 			if (!afterId) {
 				afterId = lastProduct ? lastProduct._id : null;
 			}
@@ -157,9 +156,6 @@ export const createMutations = (mutationTypes, stateSelector = state => state) =
 				i = insertIndex(state.items, updatedProduct._id);
 				state.items.splice(i, 0, updatedProduct);
 			}
-
-			//state.dummy = null;
-			//state.focus = null;
 		},
 
 		[mutationTypes.PRODUCTS_REMOVE_SUCCESS] (state, {doc}) {

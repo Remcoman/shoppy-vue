@@ -1,11 +1,11 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import Vue from 'vue';
+import Vuex from 'vuex';
 
 //domain specific stores
-import {createShoppingListStore} from 'modules/shopping-list';
-import {createRecipesStore} from 'modules/recipes';
-import {createRecipeDetailsStore} from 'modules/recipe-details';
-import {createMutations, createState} from './app';
+import {createShoppingListStore} from '@/modules/shopping-list';
+import {createRecipesStore} from '@/modules/recipes';
+import {createRecipeDetailsStore} from '@/modules/recipe-details';
+import {createMutations, createState} from '@/modules/app';
 
 export default function (ctx) {
 	Vue.use(Vuex);
@@ -14,13 +14,12 @@ export default function (ctx) {
 		strict: process.env.NODE_ENV !== "production",
 		
 		state : createState(),
+		mutations : createMutations(),
 
 		modules : {
-			shoppingList : createShoppingListStore(ctx),
-			recipes : createRecipesStore(ctx),
+			shoppingList  : createShoppingListStore(ctx),
+			recipes 	  : createRecipesStore(ctx),
 			recipeDetails : createRecipeDetailsStore(ctx)
-		},
-
-		mutations : createMutations()
+		}
 	});
 }

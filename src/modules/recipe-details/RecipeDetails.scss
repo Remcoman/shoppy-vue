@@ -1,0 +1,115 @@
+@import '~@/style/fa/variables';
+@import '~@/style/fa/mixins';
+@import '~@/style/functions';
+@import '~@/style/variables';
+@import '~@/style/mixins';
+
+.page-recipe-details {
+    &--from-recipes {
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        z-index: -1;
+    }
+
+    &__pic-loader, &__pic-notice {
+        @include abs-centered-self;
+    }
+
+    &__pic-wrap {
+        position: relative;
+        width: 100%;
+        height: 30vh;
+        min-height: 150px;
+        overflow: hidden;
+        color: rgba($textColor, .3);
+        text-shadow: none;
+        font-size: $xlFontSize;
+        text-align: center;
+
+        @include float-left;
+        @include margin-bottom;
+
+        &--has-image {
+            color: #fff;
+            text-shadow: 0 1px #003;
+        }
+    }
+
+    &__pic-notice {
+
+        &:before {
+            @include fa-icon();
+            display: block;
+            margin: 0 auto;
+            font-size: 1.5em;
+            margin-bottom: px-rem(5px);
+        }
+
+        &--warning:before {
+            content: $fa-var-exclamation-triangle;
+        }
+
+        &--busy:before {
+            content: $fa-var-cog;
+            animation: spin 2s infinite linear;
+        }
+
+        &--drop:before {
+            content: $fa-var-arrow-circle-o-down;
+            font-size: 2.5em;
+        }
+
+        &--no-src:before {
+            content: $fa-var-image;
+            font-size: 2.5em;
+        }
+    } 
+
+    &__ingredients-header {
+        position: relative;
+    }
+
+    &__btn-add-ingredient, &__btn-all-shopping-list {
+        float: right;
+    }
+
+    &__btn-all-shopping-list > i {
+        font-size:.8em;
+    }
+
+    &__image-btn {
+        position: absolute;
+        bottom: px-rem($verticalMargin);
+        right: px-rem($horizontalMargin);
+        font-size: 1.5rem;
+        z-index: 1;
+
+        > .fa {
+            font-size: .7em;
+        }
+    }
+
+    &__content {
+        clear: both;
+        padding: 0 px-rem($horizontalMargin);
+        background: $whiteColor;
+        position: relative;
+        margin-top: 30vh;
+        padding-top: px-rem($verticalMargin);
+    }
+
+    &__prep-editor {
+        @include float-left;
+        @include margin-bottom(2);
+        height: px-rem(200px);
+    }
+
+    &__ingredients {
+        @include margin-bottom;
+    }
+
+    .product-list__empty {
+        text-align: left;
+    }
+}

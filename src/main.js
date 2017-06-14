@@ -1,10 +1,12 @@
 import Vue from 'vue'
 import createRouter from './router';
 import createStore from './store';
-import DbService from 'services/db';
-import App from './App'
+import {dbService, disableDebug} from '@/services/db';
+import {App} from './modules/app'
 import config from 'config';
-import {FocusDirective} from './directives';
+import {FocusDirective, OnAllDirective} from './directives';
+
+disableDebug();
 
 if(process.env.NODE_ENV === "production") {
 	require('offline-plugin/runtime').install();
@@ -13,21 +15,22 @@ if(process.env.NODE_ENV === "production") {
 import './style/style.scss';
 
 //global mixin for database
-const dbService = new DbService(config);
+const globalDbService = dbService(config);
 Vue.mixin({
 	beforeCreate () {
-		this.$dbService = dbService;
+		this.$dbService = globalDbService;
 	}
 });
 
 //context for all store modules
-const storeCtx = {dbService};
+const storeCtx = {dbService : globalDbService};
 
 //register global directives
 FocusDirective();
+OnAllDirective();
 
 const router = createRouter(),
-	  store = createStore(storeCtx);
+	  store  = createStore(storeCtx);
 
 /* eslint-disable no-new */
 new Vue({
